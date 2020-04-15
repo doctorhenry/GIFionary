@@ -21,7 +21,8 @@ let app = new Vue({
         ],
         judge: [],
         story:[],
-        player1 : true
+        player1Turn : false,
+        player2Turn : true
     },
     mounted:function(){
          this.loadGifs();
@@ -53,7 +54,8 @@ let app = new Vue({
                 app.player1.splice(index,1);
 
                 // TODO: Disable player input until the next player has played their turn
-                app.player1 = false;
+                app.player1Turn = true;
+                app.player2Turn = false;
             }
             else
             {
@@ -61,7 +63,8 @@ let app = new Vue({
                 app.player2.splice(index,1);
 
                 // TODO: Disable player input until the next player has played their turn
-                app.player1 = true;
+                app.player1Turn = false;
+                app.player2Turn = true;
             }
             
         }
