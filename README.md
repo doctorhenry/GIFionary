@@ -1,4 +1,4 @@
-#Welcome to GIFionary's GitHub!
+# Welcome to GIFionary's GitHub!
 
 GIFionary was imagined by John Henry, PhD and Curtis Maines, PhD. Developed by John Henry and Alex Brown, GIFionary utilises VueJS, Socket.IO and Bulma.
 
