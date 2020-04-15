@@ -2,15 +2,15 @@ window.onload = function(){
 
 };
 
-let game = new Vue({
+let app = new Vue({
     el: "#game",
     data: {
         player1: [],
         player2: [],
         judge: []
     },
-    created:function(){
-        game.loadGifs();
+    mounted:function(){
+         this.loadGifs();
     },
     methods:{
         loadGifs:function(){
