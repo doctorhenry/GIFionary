@@ -20,18 +20,21 @@ let app = new Vue({
             {"name": "wow", "url":"https://media.tenor.com/images/86eb7c00905ba5fa58b0e0bc7c7c7486/tenor.gif"}
         ],
         judge: [],
-        story:[]
+        story:[],
+        player1 : true
     },
     mounted:function(){
          this.loadGifs();
     },
     updated:function(){
-        if(app.story.length >= 4)
+        if(app.story.length == 4)
         {
-            alert("Game Over!");
+           
             // Reset the gif arrays
             app.player1 = '';
             app.player2 = '';
+
+            // alert("Game Over!");
         }
 
     },
@@ -50,6 +53,7 @@ let app = new Vue({
                 app.player1.splice(index,1);
 
                 // TODO: Disable player input until the next player has played their turn
+                app.player1 = false;
             }
             else
             {
@@ -57,6 +61,7 @@ let app = new Vue({
                 app.player2.splice(index,1);
 
                 // TODO: Disable player input until the next player has played their turn
+                app.player1 = true;
             }
             
         }
