@@ -16,6 +16,7 @@
         </figure>
       </div>
       <div id="game" class="container has-background-primary">
+        <h1>{{gameGuid}}</h1>
         <!-- Player 1 area -->
         <div class="card has-background-primary">
           <h1 class="title is-1 has-text-centered">Player 1</h1>
@@ -182,6 +183,7 @@ export default class App extends Vue {
   public story: object[] = [];
   public player1Turn = false;
   public player2Turn = true;
+  public gameGuid = Environment.NameSpace;
 
   public updated() {
     if (this.story.length == 4) {
