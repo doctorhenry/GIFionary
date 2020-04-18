@@ -7,7 +7,6 @@
       <title>GIFionary</title>
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css" />
       <link rel="icon" href="images/logo.ico" />
-
     </head>
 
     <body>
@@ -85,21 +84,38 @@
         </div>
       </div>
     </body>
-    <footer>
-
-    </footer>
+    <footer></footer>
   </html>
 </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import * as Io from "socket.io-client";
+import SocketEvents from "../../library/constants/socketEvents";
+import Environment from "./environments/environment";
 
 @Component({
   components: {}
 })
-
 export default class App extends Vue {
+  public TestyMcTestFace() {
+    // const socketIo = Io(Environment.WebSocketUrl);
+
+    // socketIo.on(SocketEvents.Connection, data => {
+	// 	const thisDoesntDoAnyhting = true;
+	// });
+
+    /*TODO:
+		# Extract logic for game into a separate Vue (logic below)
+		# Create a log in Vue and display that first
+		# If user is logged in then give option to create/join game
+		# Wait for all players to be ready before starting game
+		# Post messages up to server to dictate who's turn it is
+
+		<Add more here>
+	*/
+  }
   public player1 = [
     {
       name: "laugh",
@@ -174,7 +190,12 @@ export default class App extends Vue {
     console.log("hey");
   }
 
-  playCard(cardName: string, cardURL: string, index: number, thisPlayer: string) {
+  playCard(
+    cardName: string,
+    cardURL: string,
+    index: number,
+    thisPlayer: string
+  ) {
     const playedCard = { name: cardName, url: cardURL };
     this.story.push(playedCard);
 
@@ -194,7 +215,6 @@ export default class App extends Vue {
       this.player2Turn = true;
     }
   }
-
 }
 
 // Socket.io
