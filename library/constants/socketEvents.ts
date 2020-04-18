@@ -1,3 +1,3 @@
 export default class SocketEvents {
-    public static readonly Connection = "connection";
+    public static readonly Message = "client-message";
 }

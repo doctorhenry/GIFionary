@@ -1,3 +1,3 @@
 export default class Environment {
-    public static readonly WebSocketUrl = "Blah";
+    public static readonly WebSocketUrl = "localhost:9090";
 }

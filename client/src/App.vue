@@ -91,20 +91,27 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import * as Io from "socket.io-client";
+import io from "socket.io-client";
 import SocketEvents from "../../library/constants/socketEvents";
 import Environment from "./environments/environment";
+//Attaching bootstrap js
 
 @Component({
   components: {}
 })
 export default class App extends Vue {
-  public TestyMcTestFace() {
-    // const socketIo = Io(Environment.WebSocketUrl);
+   mounted(){
+     this.socketClient();
+   }
+   public socketClient(): void {
+    const socketIo = io(Environment.WebSocketUrl);
 
-    // socketIo.on(SocketEvents.Connection, data => {
-	// 	const thisDoesntDoAnyhting = true;
-	// });
+    // server side code
+    socketIo.on("client-message", (data: any) => {
+      console.log(data);
+    });
+
+    socketIo.emit("client-message", "hello world");
 
     /*TODO:
 		# Extract logic for game into a separate Vue (logic below)
@@ -116,6 +123,7 @@ export default class App extends Vue {
 		<Add more here>
 	*/
   }
+
   public player1 = [
     {
       name: "laugh",
@@ -218,6 +226,7 @@ export default class App extends Vue {
 }
 
 // Socket.io
+
 </script>
 
 <style>
