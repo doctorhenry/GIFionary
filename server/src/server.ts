@@ -7,11 +7,7 @@ import Environment from "../../client/src/environments/environment"
 const http = new Http.Server(Express);
 const socketIo = Socketio(http);
 
-function generateGuid()
-{
-    const id:string = Guid.raw();
-    return id;
-}  
+
 // When a client connects to the server...
 socketIo.on("connection", function(socket:any) {
     console.log("A user has connected");
@@ -22,6 +18,8 @@ socketIo.on("connection", function(socket:any) {
     // Create a random GUID. 
     Environment.NameSpace = Guid.raw();
     console.log(Environment.NameSpace);
+
+    socket.join(Environment.NameSpace);
     
     socket.on("client-message", function(msg:any){
         // Print the message to console
