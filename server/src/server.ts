@@ -1,49 +1,45 @@
 import Express from "express";
 import Http from "http";
-import Socketio from "socket.io";
+import Socketio, { Socket } from "socket.io";
 import { Guid } from "guid-typescript";
-import Environment from "../../client/src/environments/environment"
+import SocketEvents from '../../library/constants/socketEvents';
+import { Player } from '../../library/domain/player'
 
 const http = new Http.Server(Express);
 const socketIo = Socketio(http);
 
+let roomId: string = null;
 
-// When a client connects to the server...
-socketIo.on("connection", function(socket:any) {
-    console.log("A user has connected");
-    // Send a test message.
+let roomIds: string[] = [];
 
-    // When we receive a server message
+socketIo.on(SocketEvents.Connection, (socket: Socket) => {
     // TODO: make the namespace dynamic through persistent data.
     // Create a random GUID. 
-    Environment.NameSpace = Guid.raw();
-    console.log(Environment.NameSpace);
 
-    socket.join(Environment.NameSpace);
-    console.log("joined the room: " + Environment.NameSpace);
-    console.log(socket);
-    
-    socket.on("client-message", function(msg:any){
-        // Print the message to console
-        console.log(msg);
-       
+    socket.on(SocketEvents.JoinGame, (username: string) => {
+        socket.join(roomId);
 
-        // Test server message
-        socket.emit("test", "server-message");
+        socket.emit(SocketEvents.JoinResult, roomId);
     });
 
-    // When we receive a server message
-    socket.on("server-message", function(msg:any){
-        // Print the message to console
-        console.log(msg);
+    socket.on(SocketEvents.CreateGame, (username: string) => {
+        roomId = Guid.raw();
+
+        console.log(roomId);
+        console.log(username);
+
+        const player = new Player();
+        player.Username = username;
+        
+        socket.join(roomId);
+
+        console.log("success");
+
+        socket.emit(SocketEvents.JoinResult, roomId);
     });
     
- 
 });
 
-//}
-// functionTest();
-
 const server = http.listen(9090, () => {
-    console.log("ddddddddddddddddd!!");
+
 });
