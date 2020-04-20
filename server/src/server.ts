@@ -20,6 +20,8 @@ socketIo.on("connection", function(socket:any) {
     console.log(Environment.NameSpace);
 
     socket.join(Environment.NameSpace);
+    console.log("joined the room: " + Environment.NameSpace);
+    console.log(socket);
     
     socket.on("client-message", function(msg:any){
         // Print the message to console
