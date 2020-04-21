@@ -3,6 +3,11 @@
     <div>
       <label for="username">Username:</label>
       <input type="Text" v-model="user.Username" name="username" />
+      I have the user value of: {{user.Username}}
+    </div>
+
+    <div v-for="item in user.testList">
+      {{item}}
     </div>
 
     <div>
@@ -52,7 +57,11 @@ export default class MainMenu extends Vue {
   }
 
   createGame(): void {
+    // Store the username in the lists
+    User.testList.push(this.user.Username);
+    // Direct the user through the create game route
     this.$socketIo.emit(SocketEvents.CreateGame, this.user.Username);
+    
   }
 
   joinGame(): void {

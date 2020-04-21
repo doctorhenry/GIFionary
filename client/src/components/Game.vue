@@ -103,13 +103,17 @@
     </div>
   </div>-->
 
-  <div id="game">
+  <div id="game">  
     <div class="container">
+        Hello?
       <div
         style="border-radius: 48%;
     height: 520px; position: relative;"
         class="has-background-primary"
       >
+      <div v-for="blah in User.testlist">
+        {{blah}}
+      </div>
       <div>
         {{ThisPlayer}}
       </div>
@@ -144,7 +148,7 @@
     top: 50%;
     position: absolute;
     font-size: 20px;"
-        >Waitin for other players...</div>
+        >Waiting for other players...</div>
       </div>
     </div>
   </div>
@@ -161,11 +165,12 @@ export default class Game extends Vue {
   public gameReady = false;
   public waitingForUsers = true;
 
-  public allUsers: User[] = [
-      new User(),
-      new User(),
-      new User(),
-  ];
+  // public allUsers: User[] = [
+  //     new User(),
+  //     new User(),
+  //     new User(),
+  // ];
+
 
   getClass(index: number): string {
     if (index === 0) {
