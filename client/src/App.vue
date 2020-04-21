@@ -7,14 +7,14 @@
 
     <!-- Move Bulma to NPM -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css" />
-    <link rel="icon" href="images/logo.ico" />
+    <link rel="icon" href="assets/logo.ico" />
   </head>
 
   <body>
     <div id="app">
       <div>
         <figure class="image is-128x128">
-          <img src="images/logo.png" />
+          <img src="client/src/assets/logo.png" />
         </figure>
       </div>
 

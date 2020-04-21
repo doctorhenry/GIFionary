@@ -1,35 +1,62 @@
 <template>
   <div>
-    <input type="Text" v-model="username" />
+    <div>
+      <label for="username">Username:</label>
+      <input type="Text" v-model="user.Username" name="username" />
+    </div>
 
-    <button v-on:click="buttonClicked()">yo</button>
+    <div>
+      <button v-on:click="createGame()">Create Game</button>
+      <button v-on:click="joinGame()">Join Game</button>
+    </div>
 
-    <router-link :to="gameLink">Login</router-link>
+    <div v-show="errorJoiningGame">
+      <span style="color: red; font-size: 18px;">An error has occurred</span>
+    </div>
 
-    <input v-model="gameGuid" />
-
-    {{gameGuid}}
+    <div v-show="(loadingGame && !errorJoiningGame)">
+      <span style="color: green; font-size: 18px;">Waiting for more players to join...</span>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import { Component } from "vue-property-decorator";
 import Routes from "../../../library/constants/routes";
 import SocketEvents from "../../../library/constants/socketEvents";
+import Environment from "../environments/environment";
+import User from "../../../library/models/user";
+import Router from "vue-router";
 
-export default class Login extends Vue {
-  public readonly gameLink = `/${Routes.Game}`;
-  public username: string = "";
-  public gameGuid: string = "";
+@Component
+export default class MainMenu extends Vue {
+  public user: User;
+  public errorJoiningGame: boolean = false;
+  public loadingGame: boolean = false;
+
+  constructor() {
+    super();
+    this.user = new User();
+  }
 
   mounted(): void {
-    this.$socketIo.on(SocketEvents.JoinResult, (result: string) => {
-      this.gameGuid = result;
+    this.$socketIo.on(SocketEvents.JoinResult, (joinResult: boolean) => {
+      this.errorJoiningGame = !joinResult;
+      this.loadingGame = joinResult;
+
+      if (joinResult) {
+        this.$router.push(Routes.Game);
+      }
     });
   }
 
-  buttonClicked() {
-    this.$socketIo.emit(SocketEvents.CreateGame, this.username);
+  createGame(): void {
+    this.$socketIo.emit(SocketEvents.CreateGame, this.user.Username);
+  }
+
+  joinGame(): void {
+    this.$socketIo.emit(SocketEvents.JoinGame, this.user.Username);
   }
 }
 </script>
