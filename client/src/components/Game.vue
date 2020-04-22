@@ -124,6 +124,11 @@
       </div> -->
 
       <div class="level">
+        <h2> You are playing as {{username}}</h2>
+        <h2>Your server ID is {{roomId}}</h2>
+      </div>
+
+      <div class="level">
         <h2>Decider Cards:</h2>
         <!-- When the Decider has picked their card it appears here -->
       </div>
@@ -165,10 +170,12 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import SocketEvents from "../../../library/constants/socketEvents";
 import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
+import Room from "../../../library/models/room";
 
 @Component
 export default class Game extends Vue {
   @Prop() username?: string;
+  @Prop() roomId?: string;
 
   public gameReady = false;
   public canPlay = false;
@@ -190,6 +197,10 @@ export default class Game extends Vue {
     // Call userGame ready method here
 
     console.log(this.username);
+    console.log("Set ID: " + Room.RoomId);
+    if(this.roomId == ""){
+        this.roomId = Room.RoomId;
+    }
     this.$socketIo.emit(SocketEvents.UserReady, this.username);
 
     this.$socketIo.on(SocketEvents.CanPlay, () => {

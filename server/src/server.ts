@@ -1,9 +1,10 @@
 import Express, { json } from "express";
 import Http from "http";
-import Socketio, { Socket, Room } from "socket.io";
+import Socketio, { Socket} from "socket.io";
 import { Guid } from "guid-typescript";
 import SocketEvents from "../../library/constants/socketEvents";
 import ConnectedUser from "../../library/models/connectedUser";
+import Room from "../../library/models/room";
 import UserGame from "../../library/models/userGame";
 import Axios, { AxiosResponse } from "axios";
 import Gif from "../../library/models/gif";
@@ -21,21 +22,26 @@ const getTrendingGifs = (numberOfPlayers: number) => {
 const server = http.listen(9090, () => {
 
     let roomId: string = null;
-
     let users: ConnectedUser[] = [];
     let sockets: Socket[] = [];
     let rooms: string[] = [];
-
     let allUsersReady: boolean = false;
 
     socketIo.on(SocketEvents.Connection, (socket: Socket) => {
-        // TODO: make the namespace dynamic through persistent data.
 
         sockets.push(socket);
 
         console.log(socket.id);
 
-        socket.on(SocketEvents.JoinGame, (username: string) => {
+        // Show the lobby
+        socket.on(SocketEvents.GetLobby, () => {
+            console.log(rooms);
+            socket.emit(SocketEvents.ShowLobby, rooms);
+        });
+
+        // Join an existing room
+        // TODO: edit this to accept the selected room as a parameter
+        socket.on(SocketEvents.JoinGame, (username: string, thisRoomId :string) => {
 
             let joinSuccess: boolean = true;
 
@@ -43,7 +49,7 @@ const server = http.listen(9090, () => {
                 const user = new ConnectedUser(username, socket.id);
                 users.push(user);
 
-                socket.join(roomId);
+                socket.join(thisRoomId);
             } else {
                 joinSuccess = false;
             }
@@ -51,15 +57,21 @@ const server = http.listen(9090, () => {
             socket.emit(SocketEvents.JoinResult, roomId);
         });
 
+        // Create a new game/room and join it
         socket.on(SocketEvents.CreateGame, (username: string) => {
             let joinSuccess: boolean = true;
 
             if (username && users.every(user => user.Username !== username)) {
+                // room.RoomId = "something";
                 roomId = Guid.raw();
 
                 const user = new ConnectedUser(username, socket.id);
                 users.push(user);
                 rooms.push(roomId);
+                console.log("pushed: " + roomId);
+                Room.RoomId = roomId;
+                console.log('set in room class: ' + Room.RoomId);
+
 
                 socket.join(roomId);
             } else {

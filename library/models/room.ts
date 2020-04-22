@@ -1,7 +1,5 @@
-import { IRoom } from "../interfaces/iRoom";
-import User from '../models/user';
-
-export class Room implements IRoom {
-    RoomId: string;
-    Users: User[];
+export default class Room {
+    // RoomId: string = "";
+    public static RoomId:string = "";
+    // Users: User[];
 }
