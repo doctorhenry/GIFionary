@@ -4,6 +4,6 @@ export default class SocketEvents {
     public static readonly JoinGame = "joinGame";
     public static readonly JoinResult = "joinResult";
     public static readonly UserReady = "userReady";
-    public static readonly GameReady = "gameReady";
-    public static readonly UserTurn = "userTurn";
+    public static readonly CanPlay = "canPlay";
+    public static readonly GameUpdate = "gameUpdate";
 }

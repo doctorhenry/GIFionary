@@ -15,7 +15,8 @@ export default new Router({
         {
             path: `/${Routes.Game}`,
             name: Routes.Game,
-            component: () => import( "./components/Game.vue")
+            component: () => import( "./components/Game.vue"),
+            props: true
         }
     ]
 });

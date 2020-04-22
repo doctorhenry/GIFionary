@@ -1,4 +1,9 @@
 export default class Gif {
-    Name: string = "";
-    Location: string = "";
+    constructor(id: number, url: string) {
+        this.Id = id;
+        this.Url = url;
+    }
+
+    Id: number;
+    Url: string = "";
 }

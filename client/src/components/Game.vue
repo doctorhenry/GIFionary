@@ -34,7 +34,7 @@
 }
 </style>
 <template>
-  <!--<div id="game" class="container has-background-primary">
+  <!--<div id="userGame" class="container has-background-primary">
     <h1>{{gameGuid}}</h1>
 
     <div class="card has-background-primary">
@@ -103,34 +103,40 @@
     </div>
   </div>-->
 
-  <div id="game">  
-    <div class="container">
-        Hello?
-      <div
+  <div id="userGame">
+    <div v-if="userGame.Users" class="container">
+      <h1 v-show="!canPlay && gameReady">Waiting on Decider...</h1>
+
+      <!-- <div
         style="border-radius: 48%;
     height: 520px; position: relative;"
         class="has-background-primary"
       >
-      <div v-for="blah in User.testlist">
-        {{blah}}
-      </div>
-      <div>
-        {{ThisPlayer}}
-      </div>
-        <!-- Players -->
+
         <div
-          v-for="(user, index) in allUsers"
+          v-for="(user, index) in userGame.Users"
           :key="user.Username"
           v-bind:class="getClass(index)"
           class="user-position"
         >
           <div style="width:50px; height:50px; background-color: red;"></div>
         </div>
+      </div> -->
+
+      <div class="level">
+        <h2>Decider Cards:</h2>
+        <!-- When the Decider has picked their card it appears here -->
+      </div>
+
+      <div class="level">
+        <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
+          <img :src="gif.Url"/>
+        </div>
       </div>
     </div>
 
     <div
-      v-if="waitingForUsers"
+      v-if="!gameReady"
       style="height: 100%;
     width: 100%;
     position: absolute;
@@ -155,22 +161,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Prop } from "vue-property-decorator";
 import SocketEvents from "../../../library/constants/socketEvents";
 import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
 
 @Component
 export default class Game extends Vue {
+  @Prop() username?: string;
+
   public gameReady = false;
-  public waitingForUsers = true;
-
-  // public allUsers: User[] = [
-  //     new User(),
-  //     new User(),
-  //     new User(),
-  // ];
-
+  public canPlay = false;
+  public userGame: UserGame = new UserGame();
 
   getClass(index: number): string {
     if (index === 0) {
@@ -185,18 +187,18 @@ export default class Game extends Vue {
   }
 
   mounted(): void {
-    // Call game ready method here
-    this.$socketIo.emit(SocketEvents.UserReady);
+    // Call userGame ready method here
 
-    this.$socketIo.on(SocketEvents.GameReady, (game: UserGame) => {
-      if (game && game.ThisPlayer) {
-        this.gameReady = true;
-        this.waitingForUsers = game.ThisPlayer.CanPlay;
-      }
+    console.log(this.username);
+    this.$socketIo.emit(SocketEvents.UserReady, this.username);
+
+    this.$socketIo.on(SocketEvents.CanPlay, () => {
+      this.canPlay = true;
     });
 
-    this.$socketIo.on(SocketEvents.UserTurn, (result: string) => {
-      this.waitingForUsers = false;
+    this.$socketIo.on(SocketEvents.GameUpdate, (userGame: UserGame) => {
+      this.gameReady = true;
+      this.userGame = userGame;
     });
 
     // Sends back room id

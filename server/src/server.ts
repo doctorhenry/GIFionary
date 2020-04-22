@@ -1,43 +1,46 @@
-import Express from "express";
+import Express, { json } from "express";
 import Http from "http";
 import Socketio, { Socket, Room } from "socket.io";
 import { Guid } from "guid-typescript";
 import SocketEvents from "../../library/constants/socketEvents";
-import Player from "../../library/models/player";
-import Https from "https";
+import ConnectedUser from "../../library/models/connectedUser";
 import UserGame from "../../library/models/userGame";
+import Axios, { AxiosResponse } from "axios";
+import Gif from "../../library/models/gif";
 
 const http = new Http.Server(Express);
 const socketIo = Socketio(http);
 
-const getTrendingGifs = () => {
-    return Https.get("api.giphy.com/v1/gifs/random");
+const getTrendingGifs = (numberOfPlayers: number) => {
+    const limitAmount = numberOfPlayers * 8;
+    const randomPosition = Math.random() * (100 - 1) + 1;
+
+    return Axios.get(`https://api.tenor.com/v1/trending?keyLIVDSRZULELA&limit=${limitAmount}&post=${randomPosition}`);
 }
 
 const server = http.listen(9090, () => {
 
     let roomId: string = null;
 
-    let players: Player[] = [];
+    let users: ConnectedUser[] = [];
+    let sockets: Socket[] = [];
 
-    let allPlayersReady: boolean = false;
+    let allUsersReady: boolean = false;
 
     socketIo.on(SocketEvents.Connection, (socket: Socket) => {
         // TODO: make the namespace dynamic through persistent data.
-        // Create a random GUID. 
 
-        // I thought anything within the context of the current socket was bound to a specific user's connection, I guess not. This doesn't work.
-        let currentPlayerUsername: string = "";
+        sockets.push(socket);
+
+        console.log(socket.id);
 
         socket.on(SocketEvents.JoinGame, (username: string) => {
 
             let joinSuccess: boolean = true;
 
-            if (username && players.every(player => player.Username !== username)) {
-                const user = new Player(username);
-                players.push(user);
-
-                currentPlayerUsername = username;
+            if (username && users.every(user => user.Username !== username)) {
+                const user = new ConnectedUser(username, socket.id);
+                users.push(user);
 
                 socket.join(roomId);
             } else {
@@ -50,13 +53,11 @@ const server = http.listen(9090, () => {
         socket.on(SocketEvents.CreateGame, (username: string) => {
             let joinSuccess: boolean = true;
 
-            if (username && players.every(player => player.Username !== username)) {
+            if (username && users.every(user => user.Username !== username)) {
                 roomId = Guid.raw();
 
-                const user = new Player(username);
-                players.push(user);
-
-                currentPlayerUsername = username;
+                const user = new ConnectedUser(username, socket.id);
+                users.push(user);
 
                 socket.join(roomId);
             } else {
@@ -66,29 +67,40 @@ const server = http.listen(9090, () => {
             socket.emit(SocketEvents.JoinResult, joinSuccess);
         });
 
+        socket.on(SocketEvents.UserReady, (username: string) => {
+            const currentUser = users.find(user => user.Username === username);
 
-        socket.on(SocketEvents.UserReady, () => {
+            if (currentUser) {
+                currentUser.IsReady = true;
 
-            const currentPlayer = players.find(player => player.Username === currentPlayerUsername);
+                allUsersReady = users.every(user => user.IsReady) && users.length > 1;
 
-            if (currentPlayer) {
-                currentPlayer.IsReady = true;
+                console.log(username);
+                console.log(allUsersReady);
 
-                allPlayersReady = players.every(player => player.IsReady) && players.length > 1;
-
-                if (allPlayersReady) {
+                if (allUsersReady) {
                     const userGame = new UserGame();
 
-                    console.log(players);
+                    // By default set the first person to the Decider
+                    users[0].CanPlay = true;
 
-                    players[0].CanPlay = true;
+                    userGame.Users = users;
 
-                    userGame.OtherPlayers = players.filter(player => player.Username !== currentPlayerUsername);
-                    userGame.ThisPlayer = players.find(player => player.Username === currentPlayerUsername);
+                    getTrendingGifs(users.length).then((response: AxiosResponse<any>) => {
+                        let allGifs = mapTenorApiCallToGifs(response.data.results);
 
-                    console.log(userGame.ThisPlayer);
+                        users.forEach(user => {
+                            const userSocket = sockets.find(socket => socket.id === user.SocketId);
 
-                    socketIo.emit(SocketEvents.GameReady, userGame);
+                            userGame.Gifs = allGifs.splice(0, 8);
+                            
+                            userSocket.emit(SocketEvents.GameUpdate, userGame);
+
+                            if (user.CanPlay) {
+                                userSocket.emit(SocketEvents.CanPlay);
+                            }
+                        });
+                    });
                 }
             }
         });
@@ -97,9 +109,6 @@ const server = http.listen(9090, () => {
 
 });
 
-/*
-Game Object
-    - State
-    - Players
-    - Room
-*/
+const mapTenorApiCallToGifs = (gifsFromApi: any[]): Gif[] => {
+    return gifsFromApi.map((gif: any, index: number) => new Gif(index, gif.media[0].gif.url));
+}
