@@ -53,11 +53,17 @@ export default class MainMenu extends Vue {
 
   createGame(): void {
     // Direct the user through the create game route
-    this.$socketIo.emit(SocketEvents.CreateGame, this.user.Username);    
+    this.$socketIo.emit(SocketEvents.CreateGame, this.user.Username); 
+    // TODO: Push the room id into a global list.  
   }
 
   joinGame(): void {
     this.$socketIo.emit(SocketEvents.JoinGame, this.user.Username);
+    //TODO: Change the route to a lobby component
+    //TODO: Have a list of available games (global list)
+    // {{socket.id}}
+    // v-on:click="joinGame(socket.id)"
+
   }
 }
 </script>

@@ -24,6 +24,7 @@ const server = http.listen(9090, () => {
 
     let users: ConnectedUser[] = [];
     let sockets: Socket[] = [];
+    let rooms: string[] = [];
 
     let allUsersReady: boolean = false;
 
@@ -58,6 +59,7 @@ const server = http.listen(9090, () => {
 
                 const user = new ConnectedUser(username, socket.id);
                 users.push(user);
+                rooms.push(roomId);
 
                 socket.join(roomId);
             } else {
@@ -105,8 +107,6 @@ const server = http.listen(9090, () => {
             }
         });
     });
-
-
 });
 
 const mapTenorApiCallToGifs = (gifsFromApi: any[]): Gif[] => {
