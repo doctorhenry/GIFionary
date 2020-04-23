@@ -103,7 +103,7 @@
     </div>
   </div>-->
 
-  <div id="userGame">
+  <div>
     <div v-if="userGame.Users" class="container">
       <h1 v-show="!canPlay && gameReady">Waiting on Decider...</h1>
 

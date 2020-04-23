@@ -51,21 +51,15 @@ import ValidationResult from "../../../library/models/validationResult";
 export default class MainMenu extends Vue {
   @Prop() usernameProp?: string;
 
-  public user: User;
-  public rooms: UserRoom[];
+  public user: User  = new User();
+  public rooms: UserRoom[] = [];
   public errorJoiningGame: boolean = false;
   public loadingGame: boolean = false;
 
-  constructor() {
-    super();
-    this.user = new User();
+  mounted(): void {
     this.user.Username = this.usernameProp ? this.usernameProp : "";
 
-    this.rooms = [];
-  }
-
-  mounted(): void {
-    this.$socketIo.on(SocketEvents.JoinResult, (joinResult: ValidationResult<string>) => {
+    this.$socketIo.on(SocketEvents.CreateResult, (joinResult: ValidationResult<string>) => {
       
         this.errorJoiningGame = !joinResult;
         this.loadingGame = joinResult.IsSuccess;
