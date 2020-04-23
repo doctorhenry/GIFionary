@@ -1,32 +1,45 @@
 <template>
-  <div>
-    <div>
-      <label for="username">Username:</label>
-      <input type="Text" v-model="user.Username" name="username" />
-    </div>
+  <div class="container">
+    <div class="is-fullheight hero">
+      <div class="columns is-multiline is-centered card" style="margin: auto 0;">
+        <div class="column is-8">
+          <label class="label" for="username">Username:</label>
 
-    <div>
-      <button v-on:click="createGame()">Create Game</button>
-      <button v-on:click="showGames()">Show active games</button>
-    </div>
+          <div class="control has-icons-left">
+            <input
+              class="input is-primary"
+              placeholder="Enter a username"
+              type="Text"
+              v-model="user.Username"
+              name="username"
+            />
 
-    <div v-show="errorJoiningGame">
-      <span style="color: red; font-size: 18px;">An error has occurred</span>
-    </div>
+            <span class="icon is-small is-left">
+              <i class="fas fa-user"></i>
+            </span>
+          </div>
+        </div>
 
-    <div v-show="(loadingGame && !errorJoiningGame)">
-      <span style="color: green; font-size: 18px;">Waiting for more players to join...</span>
-    </div>
+        <div class="column is-8 buttons">
+          <button class="button is-primary" v-on:click="createGame()">Create Game</button>
+          <button class="button is-link" v-on:click="showGames()">Show active games</button>
+        </div>
 
-    <div v-for="(r, index) in rooms" :key="index">
-      <button v-on:click="joinGame(r)" class="btn">{{r.Id}}</button>
+        <div v-show="errorJoiningGame" class="column is-8">
+          <span class="is-danger is-large">An error has occurred</span>
+        </div>
+
+        <div v-show="(loadingGame && !errorJoiningGame)" class="column is-8">
+          <span class="is-primary is-large">Waiting for more players to join...</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import { Component } from "vue-property-decorator";
+import { Component, Prop } from "vue-property-decorator";
 import Routes from "../../../library/constants/routes";
 import SocketEvents from "../../../library/constants/socketEvents";
 import Environment from "../environments/environment";
@@ -36,8 +49,9 @@ import ValidationResult from "../../../library/models/validationResult";
 
 @Component
 export default class MainMenu extends Vue {
+  @Prop() usernameProp?: string;
+
   public user: User;
-  public selectedRoom: UserRoom;
   public rooms: UserRoom[];
   public errorJoiningGame: boolean = false;
   public loadingGame: boolean = false;
@@ -45,22 +59,25 @@ export default class MainMenu extends Vue {
   constructor() {
     super();
     this.user = new User();
-    this.selectedRoom = new UserRoom();
+    this.user.Username = this.usernameProp ? this.usernameProp : "";
+
     this.rooms = [];
   }
 
   mounted(): void {
     this.$socketIo.on(SocketEvents.JoinResult, (joinResult: ValidationResult<string>) => {
-      this.errorJoiningGame = !joinResult;
-      this.loadingGame = joinResult.IsSuccess;
+      
+        this.errorJoiningGame = !joinResult;
+        this.loadingGame = joinResult.IsSuccess;
 
-      if (joinResult) {
-        this.$router.push({
-          name: Routes.Game,
-          params: { username: this.user.Username, roomId: joinResult.Data }
-        });
+        if (joinResult) {
+          this.$router.push({
+            name: Routes.Game,
+            params: { username: this.user.Username, roomId: joinResult.Data }
+          });
+        }
       }
-    });
+    );
   }
 
   createGame(): void {
@@ -68,22 +85,10 @@ export default class MainMenu extends Vue {
   }
 
   showGames(): void {
-    this.$socketIo.emit(SocketEvents.GetLobby);
-    //TODO: Change the route to a lobby component
-
-    this.$socketIo.on(SocketEvents.ShowLobby, (activeRooms: UserRoom[]) => {
-      this.rooms = activeRooms;
+    this.$router.push({
+      name: Routes.RoomList,
+      params: { usernameProp: this.user.Username }
     });
-  }
-
-  joinGame(selectedRoom: UserRoom): void {
-    this.selectedRoom = selectedRoom;
-
-    this.$socketIo.emit(
-      SocketEvents.JoinGame,
-      this.user.Username,
-      selectedRoom.RoomId
-    );
   }
 }
 </script>

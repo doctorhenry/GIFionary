@@ -4,12 +4,11 @@ import Socketio, { Socket } from "socket.io";
 import { Guid } from "guid-typescript";
 import SocketEvents from "../../library/constants/socketEvents";
 import ConnectedUser from "./models/connectedUser";
-import Room from "./models/room";
+import ConnectedRoom from "./models/connectedRoom";
 import UserGame from "../../library/models/userGame";
 import Axios, { AxiosResponse } from "axios";
 import Gif from "../../library/models/gif";
-import ConnectedRoom from "./models/room";
-import UserRoom from "../../library/models/userRoom";
+import UserRoomDetail from "../../library/models/userRoomDetail";
 import ValidationResult from "../../library/models/validationResult";
 
 const http = new Http.Server(Express);
@@ -24,20 +23,39 @@ const getTrendingGifs = (numberOfPlayers: number) => {
 
 const server = http.listen(9090, () => {
 
-    let rooms: Room[] = [];
+    let rooms: ConnectedRoom[] = [];
     let sockets: Socket[] = [];
 
     socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
         sockets.push(socket);
 
-        // Show the lobby
-        socket.on(SocketEvents.GetLobby, () => {
-            socket.emit(SocketEvents.ShowLobby, rooms as UserRoom[]);
+        // Show the rooms
+        socket.on(SocketEvents.GetRooms, () => {
+            socket.emit(SocketEvents.ShowRooms, rooms as UserRoomDetail[]);
+        });
+
+        // Create a new game/room and join it
+        socket.on(SocketEvents.CreateGame, (username: string) => {
+            const result = new ValidationResult<string>("");
+
+            if (username) {
+                const room = new ConnectedRoom(Guid.raw(), 1, username);
+
+                room.Users.push(new ConnectedUser(username, socket.id));
+                rooms.push(room);
+
+                socket.join(room.RoomId);
+
+                result.Data = room.RoomId;
+            } else {
+                result.IsSuccess = false;
+            }
+
+            socket.emit(SocketEvents.JoinResult, result);
         });
 
         // Join an existing room
-        // TODO: edit this to accept the selected room as a parameter
         socket.on(SocketEvents.JoinGame, (username: string, roomId: string) => {
             const result = new ValidationResult<string>("");
 
@@ -46,29 +64,10 @@ const server = http.listen(9090, () => {
             if (username && matchingRoom && matchingRoom.Users.every(user => user.Username !== username)) {
 
                 matchingRoom.Users.push(new ConnectedUser(username, socket.id));
+                matchingRoom.PlayerCount++;
+                
                 socket.join(roomId);
                 result.Data = roomId;
-            } else {
-                result.IsSuccess = false;
-            }
-
-            socket.emit(SocketEvents.JoinResult, result);
-        });
-
-        // Create a new game/room and join it
-        socket.on(SocketEvents.CreateGame, (username: string) => {
-            const result = new ValidationResult<string>("");
-
-            if (username) {
-                const room = new ConnectedRoom();
-
-                room.RoomId = Guid.raw();
-                room.Users.push(new ConnectedUser(username, socket.id));
-                rooms.push(room);
-
-                socket.join(room.RoomId);
-
-                result.Data = room.RoomId;
             } else {
                 result.IsSuccess = false;
             }
@@ -114,13 +113,16 @@ const server = http.listen(9090, () => {
 
         socket.on(SocketEvents.LeaveRoom, (username: string, roomId: string) => {
             const matchingRoom = rooms.find(room => room.RoomId === roomId);
-            
-            if (matchingRoom) {
+
+            if (matchingRoom && username && roomId) {
                 const matchingUser = matchingRoom.Users.find(user => user.Username === username);
 
                 socket.leave(matchingUser.SocketId);
 
                 matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
+                matchingRoom.PlayerCount--;
+
+                //Implement "if the host leaves, then the game is closed and the room is destroyed"
             }
         });
     });

@@ -10,13 +10,20 @@ export default new Router({
         {
             path: "/",
             name: Routes.Mainmenu,
-            component: MainMenu
+            component: MainMenu,
+            props: true
         },
         {
             path: `/${Routes.Game}`,
             name: Routes.Game,
             component: () => import( "./components/Game.vue"),
             props: true
-        }
+        },
+        {
+            path: `/${Routes.RoomList}`,
+            name: Routes.RoomList,
+            component: () => import( "./components/RoomList.vue"),
+            props: true
+        },
     ]
 });
