@@ -121,10 +121,10 @@
         >
           <div style="width:50px; height:50px; background-color: red;"></div>
         </div>
-      </div> -->
+      </div>-->
 
       <div class="level">
-        <h2> You are playing as {{username}}</h2>
+        <h2>You are playing as {{username}}</h2>
         <h2>Your server ID is {{roomId}}</h2>
       </div>
 
@@ -135,7 +135,7 @@
 
       <div class="level">
         <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
-          <img :src="gif.Url"/>
+          <img :src="gif.Url" />
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import SocketEvents from "../../../library/constants/socketEvents";
 import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
-import Room from "../../../library/models/room";
+import UserRoom from "../../../library/models/userRoom";
 
 @Component
 export default class Game extends Vue {
@@ -195,13 +195,9 @@ export default class Game extends Vue {
 
   mounted(): void {
     // Call userGame ready method here
-
     console.log(this.username);
-    console.log("Set ID: " + Room.RoomId);
-    if(this.roomId == ""){
-        this.roomId = Room.RoomId;
-    }
-    this.$socketIo.emit(SocketEvents.UserReady, this.username);
+    console.log(this.roomId);
+    this.$socketIo.emit(SocketEvents.UserReady, this.username, this.roomId);
 
     this.$socketIo.on(SocketEvents.CanPlay, () => {
       this.canPlay = true;
@@ -224,105 +220,8 @@ export default class Game extends Vue {
     // Decider picks winner of round
   }
 
-  // public player1 = [
-  //   {
-  //     name: "laugh",
-  //     url:
-  //       "https://media1.tenor.com/images/a50e887ed9c13b6eb5fca8bf3b8c95d4/tenor.gif?itemid=9271317"
-  //   },
-  //   {
-  //     name: "cry",
-  //     url:
-  //       "https://media.tenor.com/images/b958d257f5b1cca2838bb6011e7018c3/tenor.gif"
-  //   },
-  //   {
-  //     name: "thank-you",
-  //     url:
-  //       "https://media1.tenor.com/images/1114067881329bb4218880eeb7ec34fd/tenor.gif?itemid=12985913"
-  //   },
-  //   {
-  //     name: "really",
-  //     url:
-  //       "https://media.tenor.com/images/e3544b8117d3ecbb0cb8751f1ce0ff71/tenor.gif"
-  //   },
-  //   {
-  //     name: "wow",
-  //     url:
-  //       "https://media.tenor.com/images/86eb7c00905ba5fa58b0e0bc7c7c7486/tenor.gif"
-  //   }
-  // ];
-  // public player2 = [
-  //   {
-  //     name: "laugh",
-  //     url:
-  //       "https://media1.tenor.com/images/a50e887ed9c13b6eb5fca8bf3b8c95d4/tenor.gif?itemid=9271317"
-  //   },
-  //   {
-  //     name: "cry",
-  //     url:
-  //       "https://media.tenor.com/images/b958d257f5b1cca2838bb6011e7018c3/tenor.gif"
-  //   },
-  //   {
-  //     name: "thank-you",
-  //     url:
-  //       "https://media1.tenor.com/images/1114067881329bb4218880eeb7ec34fd/tenor.gif?itemid=12985913"
-  //   },
-  //   {
-  //     name: "really",
-  //     url:
-  //       "https://media.tenor.com/images/e3544b8117d3ecbb0cb8751f1ce0ff71/tenor.gif"
-  //   },
-  //   {
-  //     name: "wow",
-  //     url:
-  //       "https://media.tenor.com/images/86eb7c00905ba5fa58b0e0bc7c7c7486/tenor.gif"
-  //   }
-  // ];
-  // public judge = [];
-  // public story: object[] = [];
-  // public player1Turn = false;
-  // public player2Turn = true;
-  // public gameGuid = "";
-
-  // public updated() {
-  //   if (this.story.length == 4) {
-  //     // Reset the gif arrays
-  //     this.player1 = [];
-  //     this.player2 = [];
-
-  //     // alert("Game Over!");
-  //   }
-  // }
-
-  // loadGifs() {
-  //   // TODO: Load required gifs from APIs
-  //   console.log("hey");
-  // }
-
-  // playCard(
-  //   cardName: string,
-  //   cardURL: string,
-  //   index: number,
-  //   thisPlayer: string
-  // ) {
-  //   const playedCard = { name: cardName, url: cardURL };
-  //   this.story.push(playedCard);
-
-  //   if (thisPlayer == "player1") {
-  //     // Remove played card from their list
-  //     this.player1.splice(index, 1);
-
-  //     // TODO: Disable player input until the next player has played their turn
-  //     this.player1Turn = true;
-  //     this.player2Turn = false;
-  //   } else {
-  //     // Remove played card from their list
-  //     this.player2.splice(index, 1);
-
-  //     // TODO: Disable player input until the next player has played their turn
-  //     this.player1Turn = false;
-  //     this.player2Turn = true;
-  //   }
-  // }
+  destroyed(): void {
+    this.$socketIo.emit(SocketEvents.LeaveRoom, this.username, this.roomId);
+  }
 }
 </script>

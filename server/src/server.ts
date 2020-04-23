@@ -1,13 +1,16 @@
 import Express, { json } from "express";
 import Http from "http";
-import Socketio, { Socket} from "socket.io";
+import Socketio, { Socket } from "socket.io";
 import { Guid } from "guid-typescript";
 import SocketEvents from "../../library/constants/socketEvents";
-import ConnectedUser from "../../library/models/connectedUser";
-import Room from "../../library/models/room";
+import ConnectedUser from "./models/connectedUser";
+import Room from "./models/room";
 import UserGame from "../../library/models/userGame";
 import Axios, { AxiosResponse } from "axios";
 import Gif from "../../library/models/gif";
+import ConnectedRoom from "./models/room";
+import UserRoom from "../../library/models/userRoom";
+import ValidationResult from "../../library/models/validationResult";
 
 const http = new Http.Server(Express);
 const socketIo = Socketio(http);
@@ -21,101 +24,103 @@ const getTrendingGifs = (numberOfPlayers: number) => {
 
 const server = http.listen(9090, () => {
 
-    let roomId: string = null;
-    let users: ConnectedUser[] = [];
+    let rooms: Room[] = [];
     let sockets: Socket[] = [];
-    let rooms: string[] = [];
-    let allUsersReady: boolean = false;
 
     socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
         sockets.push(socket);
 
-        console.log(socket.id);
-
         // Show the lobby
         socket.on(SocketEvents.GetLobby, () => {
-            console.log(rooms);
-            socket.emit(SocketEvents.ShowLobby, rooms);
+            socket.emit(SocketEvents.ShowLobby, rooms as UserRoom[]);
         });
 
         // Join an existing room
         // TODO: edit this to accept the selected room as a parameter
-        socket.on(SocketEvents.JoinGame, (username: string, thisRoomId :string) => {
+        socket.on(SocketEvents.JoinGame, (username: string, roomId: string) => {
+            const result = new ValidationResult<string>("");
 
-            let joinSuccess: boolean = true;
+            const matchingRoom = rooms.find(room => room.RoomId === roomId);
 
-            if (username && users.every(user => user.Username !== username)) {
-                const user = new ConnectedUser(username, socket.id);
-                users.push(user);
+            if (username && matchingRoom && matchingRoom.Users.every(user => user.Username !== username)) {
 
-                socket.join(thisRoomId);
+                matchingRoom.Users.push(new ConnectedUser(username, socket.id));
+                socket.join(roomId);
+                result.Data = roomId;
             } else {
-                joinSuccess = false;
+                result.IsSuccess = false;
             }
 
-            socket.emit(SocketEvents.JoinResult, roomId);
+            socket.emit(SocketEvents.JoinResult, result);
         });
 
         // Create a new game/room and join it
         socket.on(SocketEvents.CreateGame, (username: string) => {
-            let joinSuccess: boolean = true;
+            const result = new ValidationResult<string>("");
 
-            if (username && users.every(user => user.Username !== username)) {
-                // room.RoomId = "something";
-                roomId = Guid.raw();
+            if (username) {
+                const room = new ConnectedRoom();
 
-                const user = new ConnectedUser(username, socket.id);
-                users.push(user);
-                rooms.push(roomId);
-                console.log("pushed: " + roomId);
-                Room.RoomId = roomId;
-                console.log('set in room class: ' + Room.RoomId);
+                room.RoomId = Guid.raw();
+                room.Users.push(new ConnectedUser(username, socket.id));
+                rooms.push(room);
 
+                socket.join(room.RoomId);
 
-                socket.join(roomId);
+                result.Data = room.RoomId;
             } else {
-                joinSuccess = false;
+                result.IsSuccess = false;
             }
 
-            socket.emit(SocketEvents.JoinResult, joinSuccess);
+            socket.emit(SocketEvents.JoinResult, result);
         });
 
-        socket.on(SocketEvents.UserReady, (username: string) => {
-            const currentUser = users.find(user => user.Username === username);
+        socket.on(SocketEvents.UserReady, (username: string, roomId: string) => {
+            const currentRoom = rooms.find(r => r.RoomId === roomId);
+            const currentUser = currentRoom && currentRoom.Users.find(user => user.Username === username);
 
-            if (currentUser) {
+            if (currentRoom && currentUser) {
                 currentUser.IsReady = true;
 
-                allUsersReady = users.every(user => user.IsReady) && users.length > 1;
-
-                console.log(username);
-                console.log(allUsersReady);
-
-                if (allUsersReady) {
+                if (currentRoom.AllUsersAreReady()) {
                     const userGame = new UserGame();
 
                     // By default set the first person to the Decider
-                    users[0].CanPlay = true;
+                    currentRoom.Users[0].CanPlay = true;
 
-                    userGame.Users = users;
+                    userGame.Users = currentRoom.Users;
 
-                    getTrendingGifs(users.length).then((response: AxiosResponse<any>) => {
-                        let allGifs = mapTenorApiCallToGifs(response.data.results);
+                    getTrendingGifs(userGame.Users.length)
+                        .then((response: AxiosResponse<any>) => {
 
-                        users.forEach(user => {
-                            const userSocket = sockets.find(socket => socket.id === user.SocketId);
+                            let allGifs = mapTenorApiCallToGifs(response.data.results);
 
-                            userGame.Gifs = allGifs.splice(0, 8);
-                            
-                            userSocket.emit(SocketEvents.GameUpdate, userGame);
+                            currentRoom.Users.forEach(user => {
+                                const userSocket = sockets.find(socket => socket.id === user.SocketId);
 
-                            if (user.CanPlay) {
-                                userSocket.emit(SocketEvents.CanPlay);
-                            }
+                                userGame.Gifs = allGifs.splice(0, 8);
+
+                                userSocket.emit(SocketEvents.GameUpdate, userGame);
+
+                                if (user.CanPlay) {
+                                    userSocket.emit(SocketEvents.CanPlay);
+                                }
+                            });
                         });
-                    });
                 }
+            }
+        });
+
+        socket.on(SocketEvents.LeaveRoom, (username: string, roomId: string) => {
+            const matchingRoom = rooms.find(room => room.RoomId === roomId);
+            
+            if (matchingRoom) {
+                const matchingUser = matchingRoom.Users.find(user => user.Username === username);
+
+                socket.leave(matchingUser.SocketId);
+
+                matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
             }
         });
     });
