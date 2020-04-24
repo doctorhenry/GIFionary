@@ -21,8 +21,8 @@
         </div>
 
         <div class="column is-8 buttons">
-          <button class="button is-primary" v-on:click="createGame()">Create Game</button>
-          <button class="button is-link" v-on:click="showGames()">Show active games</button>
+          <button :disabled = "user.Username.length < 1" class="button is-primary" v-on:click="createGame()">Create Game</button>
+          <button :disabled = "user.Username.length < 1" class="button is-link" v-on:click="showGames()">Show active games</button>
         </div>
 
         <div v-show="errorJoiningGame" class="column is-8">
