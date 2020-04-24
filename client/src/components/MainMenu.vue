@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <div class="has-text-centered">
+      <h1 class="title"> GIFionary! </h1>
+    </div>
     <div class="is-fullheight hero">
       <div class="columns is-multiline is-centered card" style="margin: auto 0;">
         <div class="column is-8">

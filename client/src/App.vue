@@ -13,7 +13,8 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css" />
-    <link rel="icon" href="assets/logo.ico" />
+    <link rel="stylesheet" href="../src/assets/custom.css" />
+    <link rel="icon" href="../src/assets/logo.ico" />
   </head>
 
   <body>
