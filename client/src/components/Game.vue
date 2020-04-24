@@ -1,142 +1,84 @@
 <style>
-.deg0 {
-  transform: translate(12em);
-}
-
-.deg45 {
-  transform: rotate(45deg) translate(12em) rotate(-45deg);
-}
-
-.deg135 {
-  transform: rotate(135deg) translate(12em) rotate(-135deg);
-}
-
-.deg180 {
-  transform: translate(-12em);
-}
-
-.deg225 {
-  transform: rotate(225deg) translate(12em) rotate(-225deg);
-}
-
-.deg315 {
-  transform: rotate(315deg) translate(12em) rotate(-315deg);
-}
-
 .user-position {
-  display: block;
   position: absolute;
-  top: 50%;
+  height: 75px;
+  width: 75px;
+  border-radius: 50%;
+}
+
+.user-0 {
   left: 50%;
-  width: 4em;
-  height: 4em;
-  margin: -2em;
+  bottom: -37.5px;
+  background-color: #3298dc;
+}
+
+.user-1 {
+  left: -37.5px;
+  bottom: 50%;
+  background-color: #ffdd57;
+}
+
+.user-2 {
+  bottom: 50%;
+  right: -37.5px;
+  background-color: #f14668;
+}
+
+.user-3 {
+  top: -37.5px;
+  left: 50%;
+  background-color: #48c774;
 }
 </style>
+
 <template>
-  <!--<div id="userGame" class="container has-background-primary">
-    <h1>{{gameGuid}}</h1>
-
-    <div class="card has-background-primary">
-      <h1 class="title is-1 has-text-centered">Player 1</h1>
-
-      <div class="level">
-
-        <button
-          v-for="(card,index) in player1"
-          class="card"
-          :id="card.name"
-          v-on:click="playCard(card.name,card.url,index,'player1')"
-          :disabled="player1Turn"
-          :key="card.name"
-        >
-          <div class="card-image">
-            <figure class="image is-16by16">
-              <img :src="card.url" alt="Gif Image" />
-            </figure>
-          </div>
-          <div class="card-content">
-            <div class="title is-4 has-text-centered">{{card.name}}</div>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <div class="card has-background-dark">
-      <h1 class="title is-1 has-text-centered">Story</h1>
-
-      <div class="level">
-
-        <div v-for="setCard in story" class="card" :id="setCard.name" :key="setCard.name">
-          <div class="card-image">
-            <figure class="image is-16by16">
-              <img :src="setCard.url" alt="Gif Image" />
-            </figure>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card has-background-success">
-      <h1 class="title is-1 has-text-centered">Player 2</h1>
-
-      <div class="level">
-
-        <button
-          v-for="(p2Card,index) in player2"
-          class="card"
-          :id="p2Card.name"
-          v-on:click="playCard(p2Card.name,card.url,index,'player2')"
-          :disabled="player2Turn"
-          :key="p2Card.name"
-        >
-          <div class="card-image">
-            <figure class="image is-16by16">
-              <img :src="p2Card.url" alt="Gif Image" />
-            </figure>
-          </div>
-          <div class="card-content">
-            <div class="title is-4 has-text-centered">{{p2Card.name}}</div>
-          </div>
-        </button>
-      </div>
-    </div>
-  </div>-->
-
   <div>
     <div v-if="userGame.Users" class="container">
-      <h1 v-show="!canPlay && gameReady">Waiting on Decider...</h1>
-
-      <!-- <div
-        style="border-radius: 48%;
-    height: 520px; position: relative;"
-        class="has-background-primary"
-      >
-
-        <div
-          v-for="(user, index) in userGame.Users"
-          :key="user.Username"
-          v-bind:class="getClass(index)"
-          class="user-position"
-        >
-          <div style="width:50px; height:50px; background-color: red;"></div>
+      <div class="is-fullheight hero">
+        <div class="columns is-multiline">
+          <div class="column is-12 columns is-vcentered" style="height: 75vh">
+            <div class="column card" style="min-height: 400px;">
+              <div
+                v-for="(user, index) in userGame.Users"
+                :key="user.Username"
+                v-bind:class="'user-' + index"
+                class="user-position"
+                v-on:click="!showUserDetails"
+              >
+                <div style="width: 75px;height: 75px;position: relative;">
+                  <div
+                    style="position: absolute; right: -100px;top: 50%;transform: translateY(-50%);"
+                    v-show="showUserDetails"
+                  >
+                    <div
+                      style="padding: 1rem;border: 1px solid black;"
+                      class="card"
+                    >{{user.Username}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="column is-12" style="height: 25vh">
+            <div class="tile notification is-info" style="height: 100%;">
+              <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
+                <img :src="gif.Url" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>-->
+        <!-- 
+        <h1 v-show="!canPlay && gameReady">Waiting on Decider...</h1>
 
-      <div class="level">
-        <h2>You are playing as {{username}}</h2>
-        <h2>Your server ID is {{roomId}}</h2>
-      </div>
-
-      <div class="level">
-        <h2>Decider Cards:</h2>
-        <!-- When the Decider has picked their card it appears here -->
-      </div>
-
-      <div class="level">
-        <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
-          <img :src="gif.Url" />
+        <div class="level">
+          <h2>You are playing as {{username}}</h2>
+          <h2>Your server ID is {{roomId}}</h2>
         </div>
+
+        <div class="level">
+          <h2>Decider Cards:</h2>
+
+        </div>-->
       </div>
     </div>
 
@@ -180,6 +122,7 @@ export default class Game extends Vue {
   public gameReady = false;
   public canPlay = false;
   public userGame: UserGame = new UserGame();
+  public showUserDetails: boolean = false;
 
   getClass(index: number): string {
     if (index === 0) {

@@ -118,12 +118,14 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
         if (matchingRoom && username && roomId) {
             const matchingUser = matchingRoom.Users.find(user => user.Username === username);
 
-            socket.leave(matchingUser.SocketId);
+            if (matchingUser) {
+                socket.leave(matchingUser.SocketId);
 
-            matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
-            matchingRoom.PlayerCount--;
-
-            //Implement "if the host leaves, then the game is closed and the room is destroyed"
+                matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
+                matchingRoom.PlayerCount--;
+    
+                //Implement "if the host leaves, then the game is closed and the room is destroyed"
+            }
         }
     });
 });
