@@ -191,11 +191,6 @@ export default class Game extends Vue {
     // Decider picks winner of round
   }
 
-  updated():void{
-    
-  }
-
-
   selectGif(gif: Gif): void {
     if (this.thisPlayerIsDecider) {
       this.deciderGif = gif;
