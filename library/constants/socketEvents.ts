@@ -13,4 +13,5 @@ export default class SocketEvents {
     public static readonly ObliterateRoom = "obliterateRoom"; 
     public static readonly PlayersHandSubmit = "playersHandSubmit";
     public static readonly DeciderHandSubmit = "deciderHandSubmit";
+    public static readonly NavigateHome = "navigateHome";
 }

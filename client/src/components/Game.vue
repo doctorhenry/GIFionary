@@ -35,6 +35,9 @@
   <div>
     <div v-if="userGame.Users" class="container">
       <div class="is-fullheight hero">
+        <div v-if="thisPlayerIsDecider">
+          <button class="button is-danger" v-on:click="leaveGame()">Leave Game</button>
+        </div>
         <div class="columns is-multiline">
           <div class="column is-12 columns is-vcentered" style="height: 60vh">
             <div class="column card" style="min-height: 400px; padding: 3rem;">
@@ -131,6 +134,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
+import Routes from "../../../library/constants/routes";
 import SocketEvents from "../../../library/constants/socketEvents";
 import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
@@ -170,7 +174,12 @@ export default class Game extends Vue {
       ).every(user => !user.CanPlay);
     });
 
-    // Sends back room id
+    // Navigate all other players in the room to the home page.
+    this.$socketIo.on(SocketEvents.NavigateHome,()=>{      
+      this.goToMainMenu();
+    });
+
+     // Sends back room id
     // All players locked by default
     // Server sends message to Decider to tell them to pick from a bunch of GIFs
     // Decider picks a gif and sends it back to server and it is placed on board
@@ -181,6 +190,11 @@ export default class Game extends Vue {
 
     // Decider picks winner of round
   }
+
+  updated():void{
+    
+  }
+
 
   selectGif(gif: Gif): void {
     if (this.thisPlayerIsDecider) {
@@ -204,8 +218,22 @@ export default class Game extends Vue {
     this.canPlay = false;
   }
 
+  leaveGame(): void {
+    console.log("sending command" + this.roomId);
+    this.$socketIo.emit(SocketEvents.ObliterateRoom, this.roomId);  
+    // Navigate the decider home
+    this.goToMainMenu(); 
+  }
+
   destroyed(): void {
     this.$socketIo.emit(SocketEvents.LeaveRoom, this.username, this.roomId);
+  }
+
+  
+  goToMainMenu(): void {
+    this.$router.push({
+      name: Routes.Mainmenu      
+    });        
   }
 }
 </script>

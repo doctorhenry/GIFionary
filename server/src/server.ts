@@ -141,11 +141,12 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
     socket.on(SocketEvents.ObliterateRoom, (roomId: string) => {
         const matchingRoomIndex = rooms.findIndex(room => room.RoomId === roomId);
-        if (matchingRoomIndex) {
-            // Destroy the room.
-            socket.leave(roomId);
-            rooms.splice(matchingRoomIndex, 1);
-        }
+        console.log("command received");
+        // Destroy the room.
+        socket.to(roomId).emit(SocketEvents.NavigateHome, "go home");
+        socket.leave(roomId);
+        console.log("room destroyed: " + roomId);
+        rooms.splice(matchingRoomIndex, 1);           
     });
 
     socket.on(SocketEvents.DeciderHandSubmit, (gif: Gif) => {

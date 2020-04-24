@@ -1,5 +1,5 @@
 <template>
-<html>
+<html class="is-clipped">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,7 +17,7 @@
     <link rel="icon" href="../src/assets/logo.ico" />
   </head>
 
-  <body :style="{'background-image': `url(${require('./sass/layout/Gifionary-Background.png')})`}">
+  <body :style="{'background-image': `url(${require('./sass/layout/Gifionary-Background.png')})`}" class="is-clipped">
     <div id="app" class="is-fullheight hero">
       <router-view></router-view>
     </div>
