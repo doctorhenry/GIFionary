@@ -17,7 +17,7 @@
     <link rel="icon" href="../src/assets/logo.ico" />
   </head>
 
-  <body>
+  <body :style="{'background-image': `url(${require('./sass/layout/Gifionary-Background.png')})`}">
     <div id="app" class="is-fullheight hero">
       <router-view></router-view>
     </div>
