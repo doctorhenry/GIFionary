@@ -1,0 +1,25 @@
+{
+  "name": "gifionary",
+  "version": "1.0.0",
+  "description": "GIFionary was imagined by John Henry, PhD and Curtis Maines, PhD. Developed by John Henry and Alex Brown, GIFionary utilises VueJS, Socket.IO and Bulma.",
+  "main": "index.js",
+  "dependencies": {
+    "bulma": "^0.8.2",
+    "guid-typescript": "^1.0.9",
+    "sass": "^1.26.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doctorhenry/GIFionary.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/doctorhenry/GIFionary/issues"
+  },
+  "homepage": "https://github.com/doctorhenry/GIFionary#readme"
+}

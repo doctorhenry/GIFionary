@@ -135,7 +135,19 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
                 matchingRoom.PlayerCount--;
     
                 //Implement "if the host leaves, then the game is closed and the room is destroyed"
+
+                // TODO : Leave room on button press.
             }
+        }
+    });
+
+    socket.on(SocketEvents.ObliterateRoom, (roomId: string) => {
+        const matchingRoomIndex = rooms.findIndex(room => room.RoomId === roomId);
+        if (matchingRoomIndex)
+        {
+            // Destroy the room.
+            socket.leave(roomId);
+            rooms.splice(matchingRoomIndex,1);
         }
     });
 });

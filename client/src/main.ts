@@ -3,6 +3,7 @@ import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
 import { SocketIoService } from './services/socketIo.service'
+import './sass/main.scss'
 
 //Import for CSS goes here, e.g. impot './scss/main.sass'
 

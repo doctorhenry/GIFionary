@@ -10,4 +10,5 @@ export default class SocketEvents {
     public static readonly CanPlay = "canPlay";
     public static readonly GameUpdate = "gameUpdate";
     public static readonly LeaveRoom = "leaveRoom";
+    public static readonly ObliterateRoom = "obliterateRoom"; 
 }
