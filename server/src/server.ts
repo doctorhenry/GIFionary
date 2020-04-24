@@ -67,18 +67,16 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
             matchingRoom.Users.push(new ConnectedUser(username, socket.id));
             matchingRoom.PlayerCount++;
 
-            if(matchingRoom.PlayerCount > 4)
-            {
+            if (matchingRoom.PlayerCount > 4) {
                 console.log("no more players allowed");
                 result.IsSuccess = false;
                 result.Errors.push("This server has reached capacity. Please try another.");
             }
-            else
-            {
+            else {
                 socket.join(roomId);
                 result.Data = roomId;
             }
-            
+
         } else {
             result.IsSuccess = false;
         }
@@ -133,7 +131,7 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
                 matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
                 matchingRoom.PlayerCount--;
-    
+
                 //Implement "if the host leaves, then the game is closed and the room is destroyed"
 
                 // TODO : Leave room on button press.
@@ -143,15 +141,22 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
     socket.on(SocketEvents.ObliterateRoom, (roomId: string) => {
         const matchingRoomIndex = rooms.findIndex(room => room.RoomId === roomId);
-        if (matchingRoomIndex)
-        {
+        if (matchingRoomIndex) {
             // Destroy the room.
             socket.leave(roomId);
-            rooms.splice(matchingRoomIndex,1);
+            rooms.splice(matchingRoomIndex, 1);
         }
+    });
+
+    socket.on(SocketEvents.DeciderHandSubmit, (gif: Gif) => {
+
+    });
+
+    socket.on(SocketEvents.PlayersHandSubmit, (username: string, gifs: Gif[]) => {
+
     });
 });
 
 const mapTenorApiCallToGifs = (gifsFromApi: any[]): Gif[] => {
-    return gifsFromApi.map((gif: any, index: number) => new Gif(index, gif.media[0].gif.url));
+    return gifsFromApi.map((gif: any, index: number) => <Gif>{ Id: index, Url: gif.media[0].gif.url });
 }

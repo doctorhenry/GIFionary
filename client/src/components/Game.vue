@@ -36,8 +36,22 @@
     <div v-if="userGame.Users" class="container">
       <div class="is-fullheight hero">
         <div class="columns is-multiline">
-          <div class="column is-12 columns is-vcentered" style="height: 75vh">
-            <div class="column card" style="min-height: 400px;">
+          <div class="column is-12 columns is-vcentered" style="height: 60vh">
+            <div class="column card" style="min-height: 400px; padding: 3rem;">
+              <div class="columns">
+                <div v-show="deciderGif && deciderGif.Url" class="column is-3">
+                  <img :src="deciderGif.Url" />
+                </div>
+                <div
+                  v-show="playerGifs.length > 0"
+                  v-for="gif in playerGifs"
+                  :key="gif.Id"
+                  class="column is-3"
+                >
+                  <img :src="gif.Url" />
+                </div>
+              </div>
+
               <div
                 v-for="(user, index) in userGame.Users"
                 :key="user.Username"
@@ -59,10 +73,18 @@
               </div>
             </div>
           </div>
-          <div class="column is-12" style="height: 25vh">
+          <div v-show="canPlay" class="column is-12" style="height: 35vh">
+            <div class="buttons">
+              <button
+                v-on:click="playerConfirmSelection()"
+                :disabled="!canPlay || (playerGifs.length < 1 && !deciderGif.Url)"
+                class="button is-success"
+                type="button"
+              >Confirm Selection</button>
+            </div>
             <div class="tile notification is-info" style="height: 100%;">
               <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
-                <img :src="gif.Url" />
+                <img :src="gif.Url" v-on:click="selectGif(gif)" />
               </div>
             </div>
           </div>
@@ -113,6 +135,7 @@ import SocketEvents from "../../../library/constants/socketEvents";
 import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
 import UserRoom from "../../../library/models/userRoom";
+import Gif from "../../../library/models/gif";
 
 @Component
 export default class Game extends Vue {
@@ -123,23 +146,11 @@ export default class Game extends Vue {
   public canPlay = false;
   public userGame: UserGame = new UserGame();
   public showUserDetails: boolean = false;
-
-  getClass(index: number): string {
-    if (index === 0) {
-      return "deg0";
-    } else if (index === 1) {
-      return "deg45";
-    } else if (index === 2) {
-      return "deg135";
-    } else {
-      return "deg180";
-    }
-  }
+  public thisPlayerIsDecider = false;
+  public deciderGif: Gif = new Gif();
+  public playerGifs: Gif[] = [];
 
   mounted(): void {
-    // Call userGame ready method here
-    console.log(this.username);
-    console.log(this.roomId);
     this.$socketIo.emit(SocketEvents.UserReady, this.username, this.roomId);
 
     this.$socketIo.on(SocketEvents.CanPlay, () => {
@@ -149,6 +160,14 @@ export default class Game extends Vue {
     this.$socketIo.on(SocketEvents.GameUpdate, (userGame: UserGame) => {
       this.gameReady = true;
       this.userGame = userGame;
+
+      const thisPlayer = this.userGame.Users.find(
+        user => user.Username === this.username
+      );
+
+      this.thisPlayerIsDecider = this.userGame.Users.filter(
+        user => user !== thisPlayer
+      ).every(user => !user.CanPlay);
     });
 
     // Sends back room id
@@ -161,6 +180,28 @@ export default class Game extends Vue {
     // All players get to see the story combinations
 
     // Decider picks winner of round
+  }
+
+  selectGif(gif: Gif): void {
+    if (this.thisPlayerIsDecider) {
+      this.deciderGif = gif;
+    } else {
+      this.playerGifs.push(gif);
+    }
+  }
+
+  playerConfirmSelection(): void {
+    if (this.thisPlayerIsDecider) {
+      this.$socketIo.emit(SocketEvents.DeciderHandSubmit, this.deciderGif);
+    } else {
+      this.$socketIo.emit(
+        SocketEvents.PlayersHandSubmit,
+        this.username,
+        this.playerGifs
+      );
+    }
+
+    this.canPlay = false;
   }
 
   destroyed(): void {

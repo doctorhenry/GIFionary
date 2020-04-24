@@ -9,5 +9,4 @@ export default class ConnectedUser extends User {
 
     IsReady: boolean = false;
     SocketId: string = "";
-    CanPlay: boolean = false;
 }
