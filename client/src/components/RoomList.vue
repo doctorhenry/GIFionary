@@ -17,7 +17,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr
+              <tr :hidden = "room.PlayerCount > 3"
                 v-for="room in rooms"
                 :key="room.RoomId"
                 v-on:click="goToGame(room)"

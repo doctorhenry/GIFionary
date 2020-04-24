@@ -66,9 +66,19 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
             matchingRoom.Users.push(new ConnectedUser(username, socket.id));
             matchingRoom.PlayerCount++;
+
+            if(matchingRoom.PlayerCount > 4)
+            {
+                console.log("no more players allowed");
+                result.IsSuccess = false;
+                result.Errors.push("This server has reached capacity. Please try another.");
+            }
+            else
+            {
+                socket.join(roomId);
+                result.Data = roomId;
+            }
             
-            socket.join(roomId);
-            result.Data = roomId;
         } else {
             result.IsSuccess = false;
         }
