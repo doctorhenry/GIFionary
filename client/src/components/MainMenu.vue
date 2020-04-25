@@ -26,6 +26,7 @@
         <div class="column is-8 buttons">
           <button :disabled = "user.Username.length < 1" class="button is-primary" v-on:click="createGame()">Create Game</button>
           <button :disabled = "user.Username.length < 1" class="button is-link" v-on:click="showGames()">Show active games</button>
+          <button class="button is-danger" v-on:click="reloadPage()">Reload servers</button>
         </div>
 
         <div v-show="errorJoiningGame" class="column is-8">
@@ -90,6 +91,10 @@ export default class MainMenu extends Vue {
       name: Routes.RoomList,
       params: { usernameProp: this.user.Username }
     });
+  }
+
+  reloadPage():void {
+    window.location.reload();
   }
 }
 </script>

@@ -120,7 +120,12 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
         }
     });
 
+    socket.on('disconnect',()=>{
+        console.log("todo");
+    });
+
     socket.on(SocketEvents.LeaveRoom, (username: string, roomId: string) => {
+        console.log("leaving room");
         const matchingRoom = rooms.find(room => room.RoomId === roomId);
 
         if (matchingRoom && username && roomId) {
@@ -131,10 +136,14 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
                 matchingRoom.Users.splice(matchingRoom.Users.findIndex(user => user.Username === username), 1);
                 matchingRoom.PlayerCount--;
+                console.log(matchingRoom.PlayerCount);
+
+                if (matchingRoom.PlayerCount < 1)
+                {
+                    socket.emit(SocketEvents.ObliterateRoom, roomId);
+                }
 
                 //Implement "if the host leaves, then the game is closed and the room is destroyed"
-
-                // TODO : Leave room on button press.
             }
         }
     });

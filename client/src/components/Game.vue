@@ -185,6 +185,14 @@ export default class Game extends Vue {
       this.goToMainMenu();
     });
 
+    console.log(this.roomId);
+
+    // The user has refreshed the room, force a refresh.
+    if(!this.roomId)
+    {
+      this.goToMainMenu();      
+    }
+
     // Sends back room id
     // All players locked by default
     // Server sends message to Decider to tell them to pick from a bunch of GIFs
@@ -226,7 +234,8 @@ export default class Game extends Vue {
     this.goToMainMenu();
   }
 
-  destroyed(): void {
+  beforeDestroy(): void {
+    console.log("sending destroy message");
     this.$socketIo.emit(SocketEvents.LeaveRoom, this.username, this.roomId);
   }
 
