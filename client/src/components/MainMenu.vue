@@ -33,6 +33,7 @@
         </div>
 
         <div v-show="(loadingGame && !errorJoiningGame)" class="column is-8">
+          <span class="is-primary is-large">TEST: {{thisRoomId}}</span>
           <span class="is-primary is-large">Waiting for more players to join...</span>
         </div>
       </div>
@@ -58,14 +59,17 @@ export default class MainMenu extends Vue {
   public rooms: UserRoom[] = [];
   public errorJoiningGame: boolean = false;
   public loadingGame: boolean = false;
+  public thisRoomId: string = "";
 
   mounted(): void {
     this.user.Username = this.usernameProp ? this.usernameProp : "";
 
     this.$socketIo.on(SocketEvents.CreateResult, (joinResult: ValidationResult<string>) => {
-      
+        console.log("Hola");
         this.errorJoiningGame = !joinResult;
         this.loadingGame = joinResult.IsSuccess;
+        this.thisRoomId = joinResult.Data;
+        console.log(this.thisRoomId);
 
         if (joinResult) {
           this.$router.push({

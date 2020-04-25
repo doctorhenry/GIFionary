@@ -119,6 +119,12 @@
     >
       <div style="position: relative; height: 100%; width: 100%;">
         <div
+          style="width: 100%;
+    text-align: center;    
+    top: 50%;    
+    font-size: 20px;"
+        >You are in room: {{roomId}}</div>
+        <div
           style="width: 75%;
     text-align: center;
     left: 50%;
@@ -175,11 +181,11 @@ export default class Game extends Vue {
     });
 
     // Navigate all other players in the room to the home page.
-    this.$socketIo.on(SocketEvents.NavigateHome,()=>{      
+    this.$socketIo.on(SocketEvents.NavigateHome, () => {
       this.goToMainMenu();
     });
 
-     // Sends back room id
+    // Sends back room id
     // All players locked by default
     // Server sends message to Decider to tell them to pick from a bunch of GIFs
     // Decider picks a gif and sends it back to server and it is placed on board
@@ -215,20 +221,19 @@ export default class Game extends Vue {
 
   leaveGame(): void {
     console.log("sending command" + this.roomId);
-    this.$socketIo.emit(SocketEvents.ObliterateRoom, this.roomId);  
+    this.$socketIo.emit(SocketEvents.ObliterateRoom, this.roomId);
     // Navigate the decider home
-    this.goToMainMenu(); 
+    this.goToMainMenu();
   }
 
   destroyed(): void {
     this.$socketIo.emit(SocketEvents.LeaveRoom, this.username, this.roomId);
   }
 
-  
   goToMainMenu(): void {
     this.$router.push({
-      name: Routes.Mainmenu      
-    });        
+      name: Routes.Mainmenu
+    });
   }
 }
 </script>
