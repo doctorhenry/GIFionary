@@ -1,5 +1,6 @@
 import ConnectedUser from "./connectedUser";
 import UserRoomDetail from "../../../library/models/userRoomDetail";
+import Story from "./story";
 
 export default class ConnectedRoom extends UserRoomDetail {
     constructor(roomId: string, playerCount: number, hostedBy: string) {
@@ -11,5 +12,6 @@ export default class ConnectedRoom extends UserRoomDetail {
     }
 
     Users: ConnectedUser[];
+    CurrentStory: Story = new Story();
     AllUsersAreReady = () => this.Users.every(user => user.IsReady) && this.Users.length > 2;
 }

@@ -33,30 +33,31 @@
 
 <template>
   <div>
-    <div v-if="userGame.Users" class="container">
+    <div v-if="users.length > 0" class="container">
       <div class="is-fullheight hero">
-        <div v-if="thisPlayerIsDecider">
+        <div v-if="thisPlayerIsDecider()">
           <button class="button is-danger" v-on:click="leaveGame()">Leave Game</button>
         </div>
         <div class="columns is-multiline">
           <div class="column is-12 columns is-vcentered" style="height: 60vh">
             <div class="column card" style="min-height: 400px; padding: 3rem;">
               <div class="columns">
-                <div v-show="deciderGif && deciderGif.Url" class="column is-3">
-                  <img :src="deciderGif.Url" />
-                </div>
                 <div
-                  v-show="playerGifs.length > 0"
-                  v-for="gif in playerGifs"
+                  v-show="playedGifs.length > 0"
+                  v-for="gif in playedGifs"
                   :key="gif.Id"
                   class="column is-3"
                 >
                   <img :src="gif.Url" />
                 </div>
+
+                <div v-show="selectedGif.Url" class="column is-3">
+                  <img :src="selectedGif.Url" />
+                </div>
               </div>
 
               <div
-                v-for="(user, index) in userGame.Users"
+                v-for="(user, index) in users"
                 :key="user.Username"
                 v-bind:class="'user-' + index"
                 class="user-position"
@@ -76,17 +77,21 @@
               </div>
             </div>
           </div>
-          <div v-show="canPlay" class="column is-12" style="height: 35vh">
+          <div
+            v-show="thisPlayer.CanPlay && !thisPlayer.CanDecide"
+            class="column is-12"
+            style="height: 35vh"
+          >
             <div class="buttons">
               <button
                 v-on:click="playerConfirmSelection()"
-                :disabled="!canPlay || (playerGifs.length < 1 && !deciderGif.Url)"
+                :disabled="!thisPlayer.CanPlay || !selectedGif.Url"
                 class="button is-success"
                 type="button"
               >Confirm Selection</button>
             </div>
             <div class="tile notification is-info" style="height: 100%;">
-              <div class="card" v-for="gif in userGame.Gifs" :key="gif.Id">
+              <div class="card" v-for="gif in gifsInHand" :key="gif.Id">
                 <img :src="gif.Url" v-on:click="selectGif(gif)" />
               </div>
             </div>
@@ -142,90 +147,102 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import Routes from "../../../library/constants/routes";
 import SocketEvents from "../../../library/constants/socketEvents";
-import UserGame from "../../../library/models/userGame";
 import User from "../../../library/models/user";
 import UserRoom from "../../../library/models/userRoom";
 import Gif from "../../../library/models/gif";
+import UserRound from "../../../library/models/userRound";
+import PlayedGif from "../../../library/models/playedGif";
+import { UserType } from "../../../library/enums/userType";
 
 @Component
 export default class Game extends Vue {
   @Prop() username?: string;
   @Prop() roomId?: string;
 
-  public gameReady = false;
-  public canPlay = false;
-  public userGame: UserGame = new UserGame();
+  public gameReady: boolean = false;
+  public thisPlayer: User = new User();
   public showUserDetails: boolean = false;
-  public thisPlayerIsDecider = false;
-  public deciderGif: Gif = new Gif();
-  public playerGifs: Gif[] = [];
+  public gifsInHand: Gif[] = [];
+  public selectedGif: Gif = new Gif();
+  public playedGifs: Gif[] = [];
+  public users: User[] = [];
+
+  private userHasInvalidRoomId = () => !this.roomId;
+
+  public thisPlayerIsDecider() {
+    return this.thisPlayer.UserType === UserType.Decider;
+  }
 
   mounted(): void {
-    this.$socketIo.emit(SocketEvents.UserReady, this.username, this.roomId);
-
-    this.$socketIo.on(SocketEvents.CanPlay, () => {
-      this.canPlay = true;
-    });
-
-    this.$socketIo.on(SocketEvents.GameUpdate, (userGame: UserGame) => {
-      this.gameReady = true;
-      this.userGame = userGame;
-
-      const thisPlayer = this.userGame.Users.find(
-        user => user.Username === this.username
-      );
-
-      this.thisPlayerIsDecider = this.userGame.Users.filter(
-        user => user !== thisPlayer
-      ).every(user => !user.CanPlay);
-    });
+    if (this.userHasInvalidRoomId()) {
+      this.goToMainMenu();
+    }
 
     // Navigate all other players in the room to the home page.
     this.$socketIo.on(SocketEvents.NavigateHome, () => {
       this.goToMainMenu();
     });
 
-    console.log(this.roomId);
+    this.$socketIo.emit(SocketEvents.UserReady, this.username, this.roomId);
 
-    // The user has refreshed the room, force a refresh.
-    if(!this.roomId)
-    {
-      this.goToMainMenu();      
-    }
+    this.$socketIo.on(SocketEvents.NewBatchOfGifs, (gifs: Gif[]) => {
+      this.gifsInHand = gifs;
+    });
 
-    // Sends back room id
-    // All players locked by default
-    // Server sends message to Decider to tell them to pick from a bunch of GIFs
-    // Decider picks a gif and sends it back to server and it is placed on board
-    // Decider gets locked out whilst player 1 and 2 make a decision on their giphs They get given 7. They can select up to 3.
-    // When players confirm selection, it sends message back to server
-    // Decider then gets control
-    // All players get to see the story combinations
+    this.$socketIo.on(SocketEvents.RoundUpdate, (round: UserRound) => {
+      this.selectedGif = new Gif();
+      this.playedGifs = round.PlayedGifs;
+    });
 
-    // Decider picks winner of round
+    this.$socketIo.on(SocketEvents.UsersUpdate, (users: User[]) => {
+      this.updateUsers(users);
+    });
   }
 
   selectGif(gif: Gif): void {
-    if (this.thisPlayerIsDecider) {
-      this.deciderGif = gif;
-    } else {
-      this.playerGifs.push(gif);
-    }
+    this.selectedGif = gif;
   }
 
   playerConfirmSelection(): void {
-    if (this.thisPlayerIsDecider) {
-      this.$socketIo.emit(SocketEvents.DeciderHandSubmit, this.deciderGif);
+    const playedGif = <PlayedGif>{
+      PlayerUsername: this.username,
+      Id: this.selectedGif.Id,
+      Url: this.selectedGif.Url
+    };
+
+    this.gifsInHand.splice(this.gifsInHand.indexOf(this.selectedGif), 1);
+
+    if (this.thisPlayerIsDecider()) {
+      this.$socketIo.emit(
+        SocketEvents.DeciderHandSubmit,
+        this.roomId,
+        playedGif
+      );
     } else {
       this.$socketIo.emit(
         SocketEvents.PlayersHandSubmit,
-        this.username,
-        this.playerGifs
+        this.roomId,
+        playedGif
       );
     }
-
-    this.canPlay = false;
   }
+
+  /*
+   - Socket - SwitchPlayerTurn
+    - Sets each user's CanDecide variable
+    - Sets each user's CanPlay variable
+    - Sets all user's PlayedGifs variable
+    - Sets all user's Points variable
+
+   - Socket - RoundUpdate
+      - Updated Round Number
+      - 
+      
+
+    - Socket - UpdateUsersHand
+      - A gif to add to the user's collection
+
+  */
 
   leaveGame(): void {
     console.log("sending command" + this.roomId);
@@ -235,14 +252,26 @@ export default class Game extends Vue {
   }
 
   beforeDestroy(): void {
-    console.log("sending destroy message");
     this.$socketIo.emit(SocketEvents.LeaveRoom, this.username, this.roomId);
   }
 
-  goToMainMenu(): void {
+  private goToMainMenu(): void {
     this.$router.push({
       name: Routes.Mainmenu
     });
+  }
+
+  private updateUsers(users: User[]): void {
+    if (!this.gameReady) {
+      this.gameReady = true;
+    }
+
+    const thisPlayer = users.find(user => user.Username === this.username);
+
+    if (thisPlayer) {
+      this.thisPlayer = thisPlayer;
+      this.users = users;
+    }
   }
 }
 </script>
