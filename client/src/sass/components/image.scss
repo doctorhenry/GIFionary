@@ -1,0 +1,22 @@
+.image-clickable {
+    transition: all $alt-transition-timing;
+
+    img {
+        transition: $default-transition;
+        
+        &:hover {
+            transform: $default-scale;
+            cursor: pointer;
+        }
+
+    }
+}
+  
+  .gif-list-enter, .gif-list-leave-to {
+    opacity: 0;
+    transform: translateY(30vh);
+  }
+
+  .gif-list-leave-active {
+    position: absolute;
+  }

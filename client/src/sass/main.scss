@@ -1,4 +1,9 @@
 // Importing into the final shebang.
 @import "variables/typography";
-@import "layout/body.scss";
+@import "variables/animation";
+
+@import "layout/body";
+
+@import "components/image";
+
 @import "../../node_modules/bulma/bulma.sass"

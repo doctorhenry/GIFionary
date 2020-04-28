@@ -34,21 +34,23 @@
 <template>
   <div>
     <div v-if="users.length > 0" class="container">
-      <div class="is-fullheight hero">
+      <div>
         <div v-if="thisPlayerIsDecider()">
           <button class="button is-danger" v-on:click="leaveGame()">Leave Game</button>
         </div>
         <div class="columns is-multiline">
-          <div class="column is-12 columns is-vcentered" style="height: 60vh">
+          <div class="column is-12" style="height: 50vh; margin-top: 3rem;">
             <div class="column card" style="min-height: 400px; padding: 3rem;">
               <div class="columns">
                 <div
                   v-show="playedGifs.length > 0"
                   v-for="gif in playedGifs"
+                  v-bind:class="{ 'image-clickable': thisPlayer.CanDecide }"
+                  v-on:click="selectPlayedGif(gif)"
                   :key="gif.Id"
                   class="column is-3"
                 >
-                  <img :src="gif.Url" />
+                  <img :src="gif.Url" style="transition: all .3s;" />
                 </div>
 
                 <div v-show="selectedGif.Url" class="column is-3">
@@ -77,11 +79,7 @@
               </div>
             </div>
           </div>
-          <div
-            v-show="thisPlayer.CanPlay && !thisPlayer.CanDecide"
-            class="column is-12"
-            style="height: 35vh"
-          >
+          <div class="column is-12" style="height: 35vh">
             <div class="buttons">
               <button
                 v-on:click="playerConfirmSelection()"
@@ -90,11 +88,20 @@
                 type="button"
               >Confirm Selection</button>
             </div>
-            <div class="tile notification is-info" style="height: 100%;">
-              <div class="card" v-for="gif in gifsInHand" :key="gif.Id">
+            <transition-group
+              name="gif-list"
+              tag="div"
+              class="tile notification is-info"
+              style="height: 100%;"
+            >
+              <div
+                class="image-clickable gif-list-item"
+                v-for="gif in gifsInHand"
+                :key="gif.Id"
+              >
                 <img :src="gif.Url" v-on:click="selectGif(gif)" />
               </div>
-            </div>
+            </transition-group>
           </div>
         </div>
         <!-- 
@@ -200,7 +207,15 @@ export default class Game extends Vue {
   }
 
   selectGif(gif: Gif): void {
-    this.selectedGif = gif;
+    if (this.thisPlayer.CanPlay) {
+      this.selectedGif = gif;
+    }
+  }
+
+  selectPlayedGif(gif: Gif): void {
+    if (this.thisPlayer.CanDecide) {
+      //Emit winner of round
+    }
   }
 
   playerConfirmSelection(): void {

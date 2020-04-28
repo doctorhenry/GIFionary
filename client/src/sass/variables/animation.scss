@@ -1,0 +1,5 @@
+$default-transition-timing: .3s;
+$alt-transition-timing: 1s;
+
+$default-transition: all $default-transition-timing ease-out;
+$default-scale: scale(1.2);

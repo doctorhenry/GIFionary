@@ -195,8 +195,6 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
                 const allPlayedUsernames = room.CurrentStory.CurrentRound.PlayedGifs.map(gif => gif.PlayerUsername);
                 const allPlayersHavePlayedThisRound = allPlayedUsers.every(playerOfType => allPlayedUsernames.find(playedUsername => playedUsername === playerOfType.Username));
 
-                console.log(`allPlayersHavePlayedThisRound: ${allPlayersHavePlayedThisRound}`);
-
                 if (allPlayersHavePlayedThisRound) {
                     socketIo.to(roomId).emit(SocketEvents.RoundUpdate, room.CurrentStory.CurrentRound);
 
