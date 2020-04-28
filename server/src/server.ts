@@ -120,7 +120,7 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (socket: Socket) => {
         console.log("todo");
     });
 
@@ -174,8 +174,8 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
                 console.log(`room id is ${roomId}`);
 
-                socket.to(roomId).emit(SocketEvents.RoundUpdate, room.CurrentStory.CurrentRound);
-                socket.to(roomId).emit(SocketEvents.UsersUpdate, room.Users as User[]);
+                socketIo.to(roomId).emit(SocketEvents.RoundUpdate, room.CurrentStory.CurrentRound);
+                socketIo.to(roomId).emit(SocketEvents.UsersUpdate, room.Users as User[]);
             } else {
                 //Throw some sort of error saying "oi you dodgy hacker"
             }
@@ -198,7 +198,7 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
                 console.log(`allPlayersHavePlayedThisRound: ${allPlayersHavePlayedThisRound}`);
 
                 if (allPlayersHavePlayedThisRound) {
-                    socket.to(roomId).emit(SocketEvents.RoundUpdate, room.CurrentStory.CurrentRound);
+                    socketIo.to(roomId).emit(SocketEvents.RoundUpdate, room.CurrentStory.CurrentRound);
 
                     const deciderPlayer = room.Users.find(user => user.UserType === UserType.Decider);
 
@@ -212,7 +212,7 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
                 thisUser.CanPlay = false;
 
-                socket.to(roomId).emit(SocketEvents.UsersUpdate, room.Users as User[]);
+                socketIo.to(roomId).emit(SocketEvents.UsersUpdate, room.Users as User[]);
             } else {
                 //TODO: Error for hacky bois
             }
