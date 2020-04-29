@@ -173,6 +173,8 @@
     font-size: 20px;"
         >The round was won by {{winningPlayer}}</div>
       </div>
+
+      <button class="btn is-success" v-on:click="resetRound()">Continue</button>
     </div>
   </div>
 </template>
@@ -195,7 +197,7 @@ export default class Game extends Vue {
 
   public gameReady: boolean = false;
   public thisPlayer: User = new User();
-  public showUserDetails: boolean = false;
+  public showUserDetails: boolean = true;
   public gifsInHand: Gif[] = [];
   public selectedGif: Gif = new Gif();
   public playedGifs: Gif[] = [];
@@ -235,8 +237,8 @@ export default class Game extends Vue {
       this.updateUsers(users);
     });
 
-    this.$socketIo.on(SocketEvents.AwardPoint, (player: string) => {
-      this.showWinner(player);
+    this.$socketIo.on(SocketEvents.AwardPoint, (player: string, points:number) => {
+      this.showWinner(player,points);
     });
 
   }
@@ -252,9 +254,12 @@ export default class Game extends Vue {
       
       // TODO: Obtain the winner of the round
       let winningPlayer = this.users.find(user => user.Username === gif.PlayerUsername)
+      if (winningPlayer)
+      {       
+        // TODO: Emit winner of round
+        this.$socketIo.emit(SocketEvents.GameWon,winningPlayer.Username,this.roomId);
+      }
 
-      // TODO: Emit winner of round
-      this.$socketIo.emit(SocketEvents.GameWon,winningPlayer.Username,this.roomId);
     }
   }
 
@@ -329,9 +334,21 @@ export default class Game extends Vue {
     }
   }
 
-  private showWinner(player:string) :void{
+  private showWinner(player:string, points:number) :void{
     this.showWinnerElement = true;
-    this.currentPoints = this.thisPlayer.Points;
+    this.winningPlayer = player;
+    // If this is the winner award the point...malaka
+    if (this.thisPlayer.Username === player)
+    {
+      this.currentPoints = points;      
+    }
+    
+  }
+
+  private resetRound():void{
+    this.showWinnerElement = false;
+    // TODO: Reset all of the round variables -- Ask Bezz
+// TODO emit to the server currentroom.currenround
   }
 }
 </script>

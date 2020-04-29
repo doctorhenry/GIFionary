@@ -21,4 +21,5 @@ export default class SocketEvents {
     public static readonly GameWon = "gameWon";
     public static readonly AwardPoint = "awardPoint";
     public static readonly TotalPoints = "totalPoints";
+    public static readonly ResetRound = "resetRound";
 }

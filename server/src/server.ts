@@ -19,10 +19,12 @@ const http = new Http.Server(Express);
 const socketIo = Socketio(http);
 
 const getTrendingGifs = (numberOfPlayers: number) => {
-    const limitAmount = numberOfPlayers * 8;
-    const randomPosition = Math.random() * (100 - 1) + 1;
+    const limitAmount = (numberOfPlayers * 8);
+    const randomPosition = Math.floor(Math.random()) * (100 - 1) + 1;
 
-    return Axios.get(`https://api.tenor.com/v1/trending?keyLIVDSRZULELA&limit=${limitAmount}&post=${randomPosition}`);
+    console.log(`https://api.tenor.com/v1/trending?keyLIVDSRZULELA&limit=${limitAmount}&pos=${randomPosition}`);
+
+    return Axios.get(`https://api.tenor.com/v1/trending?keyLIVDSRZULELA&limit=${limitAmount}&pos=${randomPosition}`);
 }
 
 const server = http.listen(9090, () => {
@@ -223,6 +225,7 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
         const room = rooms.find(room => room.RoomId === roomId);
         if(room)
         {
+            
             let currentUser = room.Users.find(user => user.Username === winningPlayer);
             console.log(winningPlayer);
             console.log(currentUser);
@@ -235,13 +238,35 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
                 currentUser.Points = 1;
             }
             
-            socketIo.to(roomId).emit(SocketEvents.AwardPoint, winningPlayer);
+            socketIo.to(roomId).emit(SocketEvents.AwardPoint, winningPlayer, currentUser.Points);            
         }
         else
         {
             console.log("No room was found. Please develop better");
         }
 
+    });
+
+    socket.on(SocketEvents.ResetRound, (roomId :string)=>{
+        const room = rooms.find(room => room.RoomId === roomId);
+        if (room){
+            room.CurrentStory.CurrentRound = new UserRound;
+
+            getTrendingGifs(room.Users.length)
+            .then((response: AxiosResponse<any>) => {
+
+                let allGifs = mapTenorApiCallToGifs(response.data.results);
+
+                room.Users.forEach(user => {
+                    const userSocket = sockets.find(socket => socket.id === user.SocketId);
+
+                    const userGifs = allGifs.splice(0, 8);
+                    console.log("yay");
+                    userSocket.emit(SocketEvents.NewBatchOfGifs, userGifs);
+                    userSocket.emit(SocketEvents.UsersUpdate, room.Users as User[]);
+                });
+            });
+        }        
     });
 });
 
