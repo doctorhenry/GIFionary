@@ -18,4 +18,7 @@ export default class SocketEvents {
     public static readonly NavigateHome = "navigateHome";
     public static readonly RoundUpdate = "roundUpdate";
     public static readonly UsersUpdate = "usersUpdate";
+    public static readonly GameWon = "gameWon";
+    public static readonly AwardPoint = "awardPoint";
+    public static readonly TotalPoints = "totalPoints";
 }

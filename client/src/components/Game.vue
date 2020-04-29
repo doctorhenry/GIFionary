@@ -38,6 +38,7 @@
         <div v-if="thisPlayerIsDecider()">
           <button class="button is-danger" v-on:click="leaveGame()">Leave Game</button>
         </div>
+        <div>{{currentPoints}}</div>
         <div class="columns is-multiline">
           <div class="column is-12" style="height: 50vh; margin-top: 3rem;">
             <div class="column card" style="min-height: 400px; padding: 3rem;">
@@ -147,6 +148,32 @@
         >Waiting for other players...</div>
       </div>
     </div>
+
+
+
+
+    <div
+      v-if="showWinnerElement"
+      style="height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: .8;
+    background-color: #fff;"
+    >
+      <div style="position: relative; height: 100%; width: 100%;">        
+        <div
+          style="width: 75%;
+    text-align: center;
+    left: 50%;
+    transform: translate(-50%);
+    top: 50%;
+    position: absolute;
+    font-size: 20px;"
+        >The round was won by {{winningPlayer}}</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -173,6 +200,9 @@ export default class Game extends Vue {
   public selectedGif: Gif = new Gif();
   public playedGifs: Gif[] = [];
   public users: User[] = [];
+  private winningPlayer : string = "";
+  private showWinnerElement : boolean = false;
+  private currentPoints: number = 0;
 
   private userHasInvalidRoomId = () => !this.roomId;
 
@@ -204,17 +234,27 @@ export default class Game extends Vue {
     this.$socketIo.on(SocketEvents.UsersUpdate, (users: User[]) => {
       this.updateUsers(users);
     });
+
+    this.$socketIo.on(SocketEvents.AwardPoint, (player: string) => {
+      this.showWinner(player);
+    });
+
   }
 
   selectGif(gif: Gif): void {
-    if (this.thisPlayer.CanPlay) {
+    if (this.thisPlayer.CanPlay && !this.thisPlayer.CanDecide) {
       this.selectedGif = gif;
     }
   }
 
-  selectPlayedGif(gif: Gif): void {
+  selectPlayedGif(gif: PlayedGif): void {
     if (this.thisPlayer.CanDecide) {
-      //Emit winner of round
+      
+      // TODO: Obtain the winner of the round
+      let winningPlayer = this.users.find(user => user.Username === gif.PlayerUsername)
+
+      // TODO: Emit winner of round
+      this.$socketIo.emit(SocketEvents.GameWon,winningPlayer.Username,this.roomId);
     }
   }
 
@@ -287,6 +327,11 @@ export default class Game extends Vue {
       this.thisPlayer = thisPlayer;
       this.users = users;
     }
+  }
+
+  private showWinner(player:string) :void{
+    this.showWinnerElement = true;
+    this.currentPoints = this.thisPlayer.Points;
   }
 }
 </script>

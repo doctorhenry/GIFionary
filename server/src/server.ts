@@ -217,6 +217,32 @@ socketIo.on(SocketEvents.Connection, (socket: Socket) => {
 
         }
     });
+
+    // Award points
+    socket.on(SocketEvents.GameWon, (winningPlayer : string, roomId :string) =>{
+        const room = rooms.find(room => room.RoomId === roomId);
+        if(room)
+        {
+            let currentUser = room.Users.find(user => user.Username === winningPlayer);
+            console.log(winningPlayer);
+            console.log(currentUser);
+            if(currentUser.Points > 0)
+            {
+                currentUser.Points += 1;
+            }
+            else
+            {
+                currentUser.Points = 1;
+            }
+            
+            socketIo.to(roomId).emit(SocketEvents.AwardPoint, winningPlayer);
+        }
+        else
+        {
+            console.log("No room was found. Please develop better");
+        }
+
+    });
 });
 
 const mapTenorApiCallToGifs = (gifsFromApi: any[]): Gif[] => {
